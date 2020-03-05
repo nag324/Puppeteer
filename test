@@ -1,0 +1,77 @@
+const puppeteer = require('puppeteer')
+const expect = require('chai').expect
+
+ 
+describe('Salesforce Automation with puppeteer', () => {
+
+   let browser
+   let page
+   
+   before(async ()=> {
+   
+         browser = await puppeteer.launch({headless: false, args:['--start-maximized']})
+         page = await browser.newPage()
+        await page.setViewport({ width: 1280, height: 960})
+
+    })
+
+
+ 
+    describe('Login test', ()=>{
+      it('should login', async ()=>{
+        await page.goto('https://nagsftest-dev-ed.my.salesforce.com/')
+        await page.waitForSelector('#username')
+        await page.type('#username', 'nag@nznetwork.com');
+        await page.waitForSelector('#password');
+        await page.type('#password', 'Salesforce1234');
+        await page.click('#Login');
+        await page.waitForNavigation().then(
+          ()=> console.log("Login Successful")
+        );
+
+      })
+
+      it('should search for App and click it', async()=>{
+
+        //await page.waitFor(10000);
+        await page.waitForSelector('.slds-truncate');
+        await page.click('nav[role="navigation"] > .bare.forceHeaderButton.salesforceIdentityAppLauncherHeader.slds-button.slds-context-bar__button.slds-icon-waffle_container.uiButton');
+        // await page.waitForSelector('.modal-container slds-modal__container')
+        ////lightning-input[@safeclass~'\bsearchBar\b.*\bslds-form-element\b.*\bslds-p-horizontal--small\b.*\bslds-p-top--small\b']/?/?/input[@safeclass~'\bslds-input\b']
+        // .slds-input-has-icon_left-right .slds-input 
+        await page.waitForSelector('.slds-size--1-of-3 .slds-input').then(
+           () => console.log("Found the search bar")
+         );
+         await page.type('.slds-size--1-of-3 .slds-input','Test Customer')
+        
+       
+         await page.waitForSelector('a[title="Test Customer"]  .label.slds-text-link.slds-truncate').then(
+           () => console.log("Found the customer link")
+         );
+       
+       
+         await page.click('a[title="Test Customer"]  .label.slds-text-link.slds-truncate')
+       })
+      
+       it('should navigate to Test App', async()=>{
+        const sel = '.slds-text-link--reset.slds-th__action.toggle > span[title="Test Customer Name"]';
+      
+        await page.waitForSelector('th[title="Test Customer Name"]  a > .slds-assistive-text').then(
+          () => console.log("Found the test text")
+        );
+        
+        
+        const name= await page.$eval(sel, el=>el.innerText);
+      
+        console.log(name);
+      
+        expect(name).to.contain('Test');
+      
+       })
+      
+      })
+   
+    })
+   
+ 
+ 
